@@ -9,7 +9,8 @@ import {
   MapPin, 
   Clock,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  Bell
 } from 'lucide-react';
 
 const Dashboard = () => {

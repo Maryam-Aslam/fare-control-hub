@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +15,14 @@ import {
   CheckCircle,
   Eye
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const { toast } = useToast();
 
-  const users = [
+  const [users, setUsers] = useState([
     {
       id: 1,
       name: "John Doe",
@@ -72,7 +73,37 @@ const UserManagement = () => {
       totalRides: 12,
       totalSpent: "$340"
     }
-  ];
+  ]);
+
+  const handleViewUser = (userId: number) => {
+    const user = users.find(u => u.id === userId);
+    toast({
+      title: "User Details",
+      description: `Viewing details for ${user?.name}`,
+    });
+  };
+
+  const handleSuspendUser = (userId: number) => {
+    setUsers(users.map(user => 
+      user.id === userId 
+        ? { ...user, status: user.status === 'active' ? 'suspended' : 'active' }
+        : user
+    ));
+    
+    const user = users.find(u => u.id === userId);
+    toast({
+      title: user?.status === 'active' ? "User Suspended" : "User Activated",
+      description: `${user?.name} has been ${user?.status === 'active' ? 'suspended' : 'activated'}`,
+    });
+  };
+
+  const handleMoreActions = (userId: number) => {
+    const user = users.find(u => u.id === userId);
+    toast({
+      title: "More Actions",
+      description: `Additional actions for ${user?.name}`,
+    });
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -198,22 +229,37 @@ const UserManagement = () => {
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewUser(user.id)}
+                        >
                           <Eye className="w-3 h-3 mr-1" />
                           View
                         </Button>
-                        {user.status === 'active' ? (
-                          <Button variant="outline" size="sm" className="text-yellow-600 hover:text-yellow-700">
-                            <Ban className="w-3 h-3 mr-1" />
-                            Suspend
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Activate
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className={user.status === 'active' ? 'text-yellow-600 hover:text-yellow-700' : 'text-green-600 hover:text-green-700'}
+                          onClick={() => handleSuspendUser(user.id)}
+                        >
+                          {user.status === 'active' ? (
+                            <>
+                              <Ban className="w-3 h-3 mr-1" />
+                              Suspend
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Activate
+                            </>
+                          )}
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleMoreActions(user.id)}
+                        >
                           <MoreHorizontal className="w-3 h-3" />
                         </Button>
                       </div>

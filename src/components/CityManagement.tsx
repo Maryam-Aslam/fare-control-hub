@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const CityManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingCity, setEditingCity] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
@@ -101,6 +101,49 @@ const CityManagement = () => {
     });
   };
 
+  const handleEditCity = (id: number) => {
+    const city = cities.find(c => c.id === id);
+    if (city) {
+      setNewCity({
+        name: city.name,
+        country: city.country,
+        baseFare: city.baseFare.toString(),
+        perKmFare: city.perKmFare.toString(),
+        perMinuteFare: city.perMinuteFare.toString()
+      });
+      setEditingCity(id);
+      setShowAddForm(true);
+    }
+  };
+
+  const handleUpdateCity = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editingCity) {
+      setCities(cities.map(city => 
+        city.id === editingCity 
+          ? {
+              ...city,
+              name: newCity.name,
+              country: newCity.country,
+              baseFare: parseFloat(newCity.baseFare),
+              perKmFare: parseFloat(newCity.perKmFare),
+              perMinuteFare: parseFloat(newCity.perMinuteFare)
+            }
+          : city
+      ));
+      
+      setNewCity({ name: '', country: '', baseFare: '', perKmFare: '', perMinuteFare: '' });
+      setEditingCity(null);
+      setShowAddForm(false);
+      
+      toast({
+        title: "City Updated",
+        description: "City has been updated successfully",
+      });
+    }
+  };
+
   const toggleCityStatus = (id: number) => {
     setCities(cities.map(city => 
       city.id === id 
@@ -141,7 +184,6 @@ const CityManagement = () => {
         </Button>
       </div>
 
-      {/* Search */}
       <Card>
         <CardContent className="p-4">
           <div className="relative">
@@ -156,14 +198,13 @@ const CityManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Add City Form */}
       {showAddForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Add New City</CardTitle>
+            <CardTitle>{editingCity ? 'Edit City' : 'Add New City'}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleAddCity} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <form onSubmit={editingCity ? handleUpdateCity : handleAddCity} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <Label htmlFor="cityName">City Name</Label>
                 <Input
@@ -216,8 +257,18 @@ const CityManagement = () => {
                 />
               </div>
               <div className="md:col-span-2 lg:col-span-5 flex gap-2">
-                <Button type="submit" className="admin-gradient">Add City</Button>
-                <Button type="button" variant="outline" onClick={() => setShowAddForm(false)}>
+                <Button type="submit" className="admin-gradient">
+                  {editingCity ? 'Update City' : 'Add City'}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setEditingCity(null);
+                    setNewCity({ name: '', country: '', baseFare: '', perKmFare: '', perMinuteFare: '' });
+                  }}
+                >
                   Cancel
                 </Button>
               </div>
@@ -226,7 +277,6 @@ const CityManagement = () => {
         </Card>
       )}
 
-      {/* Cities Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredCities.map((city) => (
           <Card key={city.id} className="hover:shadow-lg transition-shadow">
@@ -245,7 +295,6 @@ const CityManagement = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Fare Information */}
               <div className="space-y-2">
                 <h4 className="font-semibold text-gray-900">Fare Structure</h4>
                 <div className="grid grid-cols-3 gap-2 text-sm">
@@ -273,7 +322,6 @@ const CityManagement = () => {
                 </div>
               </div>
 
-              {/* Statistics */}
               <div className="space-y-2">
                 <h4 className="font-semibold text-gray-900">Statistics</h4>
                 <div className="flex justify-between text-sm">
@@ -286,9 +334,13 @@ const CityManagement = () => {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex space-x-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleEditCity(city.id)}
+                >
                   <Edit className="w-3 h-3 mr-1" />
                   Edit
                 </Button>

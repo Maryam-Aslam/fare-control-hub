@@ -5,6 +5,8 @@ import AdminSidebar from './AdminSidebar';
 import Dashboard from './Dashboard';
 import UserManagement from './UserManagement';
 import CityManagement from './CityManagement';
+import VehicleManagement from './VehicleManagement';
+import ManualBooking from './ManualBooking';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminPanel = () => {
@@ -45,23 +47,9 @@ const AdminPanel = () => {
       case 'cities':
         return <CityManagement />;
       case 'vehicles':
-        return (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Vehicle Categories</h1>
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
-              <p className="text-gray-600">Vehicle category management interface coming soon...</p>
-            </div>
-          </div>
-        );
+        return <VehicleManagement />;
       case 'bookings':
-        return (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Manual Booking</h1>
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
-              <p className="text-gray-600">Manual booking interface coming soon...</p>
-            </div>
-          </div>
-        );
+        return <ManualBooking />;
       case 'refunds':
         return (
           <div className="p-6">

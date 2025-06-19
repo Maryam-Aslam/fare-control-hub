@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AdminLogin from './AdminLogin';
 import AdminSidebar from './AdminSidebar';
@@ -7,6 +6,9 @@ import UserManagement from './UserManagement';
 import CityManagement from './CityManagement';
 import VehicleManagement from './VehicleManagement';
 import ManualBooking from './ManualBooking';
+import TransactionHistory from './TransactionHistory';
+import Notifications from './Notifications';
+import Settings from './Settings';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminPanel = () => {
@@ -51,41 +53,13 @@ const AdminPanel = () => {
       case 'bookings':
         return <ManualBooking />;
       case 'refunds':
-        return (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Refund Management</h1>
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
-              <p className="text-gray-600">Refund management interface coming soon...</p>
-            </div>
-          </div>
-        );
+        return <TransactionHistory />;
       case 'transactions':
-        return (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Transaction History</h1>
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
-              <p className="text-gray-600">Transaction history interface coming soon...</p>
-            </div>
-          </div>
-        );
+        return <TransactionHistory />;
       case 'notifications':
-        return (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Notifications & Alerts</h1>
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
-              <p className="text-gray-600">Notifications interface coming soon...</p>
-            </div>
-          </div>
-        );
+        return <Notifications />;
       case 'settings':
-        return (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Settings</h1>
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
-              <p className="text-gray-600">Settings interface coming soon...</p>
-            </div>
-          </div>
-        );
+        return <Settings />;
       default:
         return <Dashboard />;
     }

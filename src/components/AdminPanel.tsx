@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import AdminLogin from './AdminLogin';
 import AdminSidebar from './AdminSidebar';
@@ -39,9 +40,9 @@ const AdminPanel = () => {
         return <UserManagement />;
       case 'drivers':
         return (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Driver Management</h1>
-            <div className="bg-gray-100 rounded-lg p-8 text-center">
+          <div className="p-3 sm:p-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Driver Management</h1>
+            <div className="bg-gray-100 rounded-lg p-6 sm:p-8 text-center">
               <p className="text-gray-600">Driver management interface coming soon...</p>
             </div>
           </div>
@@ -70,13 +71,14 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       <AdminSidebar 
         activeSection={activeSection}
         onSectionChange={setActiveSection}
         onLogout={handleLogout}
       />
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto lg:ml-0">
+        <div className="lg:hidden h-16"></div> {/* Spacer for mobile menu button */}
         {renderContent()}
       </div>
     </div>

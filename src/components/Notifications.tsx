@@ -4,30 +4,33 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
   Bell, 
   Send, 
   Users, 
-  Car, 
-  MessageSquare,
-  Calendar,
+  Car,
   CheckCircle,
-  Clock,
-  Plus
+  AlertCircle,
+  Eye,
+  Trash2,
+  Search,
+  Filter
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Notifications = () => {
-  const [showSendForm, setShowSendForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
   const [notifications, setNotifications] = useState([
     {
       id: 1,
-      type: 'booking_created',
-      title: 'New Booking Created',
-      message: 'John Doe has booked a ride from Downtown Airport to Hotel Central',
+      type: 'booking',
+      title: 'New Ride Booking',
+      message: 'John Doe booked a Sedan from Airport to Downtown',
       timestamp: '2024-12-19 14:30',
       read: false,
       customerName: 'John Doe',
@@ -35,9 +38,9 @@ const Notifications = () => {
     },
     {
       id: 2,
-      type: 'ride_completed',
+      type: 'completion',
       title: 'Ride Completed',
-      message: 'Jane Smith\'s ride has been completed successfully',
+      message: 'Jane Smith completed her Mid-Size SUV ride',
       timestamp: '2024-12-19 13:45',
       read: true,
       customerName: 'Jane Smith',
@@ -45,21 +48,30 @@ const Notifications = () => {
     },
     {
       id: 3,
-      type: 'booking_created',
-      title: 'New Booking Created',
-      message: 'Mike Johnson has booked a ride from Business District to Shopping Mall',
+      type: 'cancellation',
+      title: 'Ride Cancelled',
+      message: 'Mike Johnson cancelled his Luxury SUV booking',
       timestamp: '2024-12-19 12:15',
       read: false,
       customerName: 'Mike Johnson',
       bookingId: 'BOOK003'
+    },
+    {
+      id: 4,
+      type: 'payment',
+      title: 'Payment Processed',
+      message: 'Payment of $89.50 received from Sarah Wilson',
+      timestamp: '2024-12-19 11:30',
+      read: true,
+      customerName: 'Sarah Wilson',
+      bookingId: 'BOOK004'
     }
   ]);
 
-  const [newNotification, setNewNotification] = useState({
-    recipient: '',
+  const [newMessage, setNewMessage] = useState({
+    recipient: 'all',
     title: '',
-    message: '',
-    type: 'announcement'
+    message: ''
   });
 
   const handleSendNotification = (e: React.FormEvent) => {
@@ -67,263 +79,242 @@ const Notifications = () => {
     
     const notification = {
       id: notifications.length + 1,
-      type: newNotification.type,
-      title: newNotification.title,
-      message: newNotification.message,
+      type: 'admin',
+      title: newMessage.title,
+      message: newMessage.message,
       timestamp: new Date().toLocaleString(),
       read: false,
-      recipient: newNotification.recipient
+      customerName: 'Admin',
+      bookingId: 'ADMIN' + (notifications.length + 1)
     };
 
     setNotifications([notification, ...notifications]);
-    setNewNotification({
-      recipient: '',
-      title: '',
-      message: '',
-      type: 'announcement'
-    });
-    setShowSendForm(false);
+    setNewMessage({ recipient: 'all', title: '', message: '' });
     
     toast({
       title: "Notification Sent",
-      description: `Notification sent to ${newNotification.recipient}`,
+      description: `Message sent to ${newMessage.recipient}`,
     });
   };
 
   const markAsRead = (id: number) => {
-    setNotifications(notifications.map(notification => 
-      notification.id === id 
-        ? { ...notification, read: true }
-        : notification
+    setNotifications(notifications.map(notif => 
+      notif.id === id ? { ...notif, read: true } : notif
     ));
+  };
+
+  const deleteNotification = (id: number) => {
+    setNotifications(notifications.filter(notif => notif.id !== id));
+    toast({
+      title: "Notification Deleted",
+      description: "Notification has been removed",
+    });
   };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'booking_created':
-        return <Calendar className="w-4 h-4 text-blue-500" />;
-      case 'ride_completed':
+      case 'booking':
+        return <Car className="w-4 h-4 text-blue-500" />;
+      case 'completion':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'announcement':
-        return <Bell className="w-4 h-4 text-purple-500" />;
-      case 'driver_alert':
-        return <Car className="w-4 h-4 text-orange-500" />;
+      case 'cancellation':
+        return <AlertCircle className="w-4 h-4 text-red-500" />;
+      case 'payment':
+        return <CheckCircle className="w-4 h-4 text-purple-500" />;
       default:
-        return <MessageSquare className="w-4 h-4 text-gray-500" />;
+        return <Bell className="w-4 h-4 text-gray-500" />;
     }
   };
 
-  const getNotificationBadge = (type: string) => {
-    switch (type) {
-      case 'booking_created':
-        return <Badge className="bg-blue-100 text-blue-800">New Booking</Badge>;
-      case 'ride_completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case 'announcement':
-        return <Badge className="bg-purple-100 text-purple-800">Announcement</Badge>;
-      case 'driver_alert':
-        return <Badge className="bg-orange-100 text-orange-800">Driver Alert</Badge>;
-      default:
-        return <Badge variant="secondary">Other</Badge>;
-    }
+  const getTypeBadge = (type: string) => {
+    const typeConfig = {
+      booking: { label: 'Booking', className: 'bg-blue-100 text-blue-800' },
+      completion: { label: 'Completed', className: 'bg-green-100 text-green-800' },
+      cancellation: { label: 'Cancelled', className: 'bg-red-100 text-red-800' },
+      payment: { label: 'Payment', className: 'bg-purple-100 text-purple-800' },
+      admin: { label: 'Admin', className: 'bg-gray-100 text-gray-800' }
+    };
+    
+    const config = typeConfig[type] || typeConfig.admin;
+    return <Badge className={config.className}>{config.label}</Badge>;
+  };
+
+  const filteredNotifications = notifications.filter(notif => {
+    const matchesSearch = notif.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         notif.message.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTab = activeTab === 'all' || 
+                      (activeTab === 'unread' && !notif.read) ||
+                      (activeTab === 'read' && notif.read);
+    
+    return matchesSearch && matchesTab;
+  });
+
+  const stats = {
+    total: notifications.length,
+    unread: notifications.filter(n => !n.read).length,
+    today: notifications.filter(n => n.timestamp.includes('2024-12-19')).length
   };
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in-up">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Notifications & Alerts</h1>
-        <Button 
-          className="admin-gradient"
-          onClick={() => setShowSendForm(true)}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Send Notification
-        </Button>
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-fade-in-up">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Notifications</h1>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+          <Badge variant="outline">{stats.total} Total</Badge>
+          <Badge variant="outline" className="text-red-600">{stats.unread} Unread</Badge>
+          <Badge variant="outline">{stats.today} Today</Badge>
+        </div>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+      {/* Send New Notification */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center text-lg sm:text-xl">
+            <Send className="w-5 h-5 mr-2 text-red-600" />
+            Send Notification
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSendNotification} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-600">Total Notifications</p>
-                <p className="text-2xl font-bold">{notifications.length}</p>
-              </div>
-              <Bell className="w-8 h-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Unread</p>
-                <p className="text-2xl font-bold">{notifications.filter(n => !n.read).length}</p>
-              </div>
-              <Clock className="w-8 h-8 text-yellow-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">New Bookings</p>
-                <p className="text-2xl font-bold">{notifications.filter(n => n.type === 'booking_created').length}</p>
-              </div>
-              <Calendar className="w-8 h-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Completed Rides</p>
-                <p className="text-2xl font-bold">{notifications.filter(n => n.type === 'ride_completed').length}</p>
-              </div>
-              <CheckCircle className="w-8 h-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Send Notification Form */}
-      {showSendForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Send New Notification</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSendNotification} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="recipient">Recipient</Label>
-                  <select
-                    id="recipient"
-                    value={newNotification.recipient}
-                    onChange={(e) => setNewNotification({...newNotification, recipient: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  >
-                    <option value="">Select Recipient</option>
-                    <option value="all_users">All Users</option>
-                    <option value="all_drivers">All Drivers</option>
-                    <option value="specific_user">Specific User</option>
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="type">Type</Label>
-                  <select
-                    id="type"
-                    value={newNotification.type}
-                    onChange={(e) => setNewNotification({...newNotification, type: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  >
-                    <option value="announcement">Announcement</option>
-                    <option value="driver_alert">Driver Alert</option>
-                    <option value="user_alert">User Alert</option>
-                  </select>
-                </div>
+                <Label htmlFor="recipient">Recipient</Label>
+                <select
+                  id="recipient"
+                  value={newMessage.recipient}
+                  onChange={(e) => setNewMessage({...newMessage, recipient: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                >
+                  <option value="all">All Users</option>
+                  <option value="customers">Customers Only</option>
+                  <option value="drivers">Drivers Only</option>
+                </select>
               </div>
               <div>
                 <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
-                  value={newNotification.title}
-                  onChange={(e) => setNewNotification({...newNotification, title: e.target.value})}
+                  value={newMessage.title}
+                  onChange={(e) => setNewMessage({...newMessage, title: e.target.value})}
                   placeholder="Notification title"
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="message">Message</Label>
-                <textarea
-                  id="message"
-                  value={newNotification.message}
-                  onChange={(e) => setNewNotification({...newNotification, message: e.target.value})}
-                  placeholder="Notification message"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md h-24"
-                  required
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" className="admin-gradient">
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Notification
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowSendForm(false);
-                    setNewNotification({
-                      recipient: '',
-                      title: '',
-                      message: '',
-                      type: 'announcement'
-                    });
-                  }}
+            </div>
+            <div>
+              <Label htmlFor="message">Message</Label>
+              <Textarea
+                id="message"
+                value={newMessage.message}
+                onChange={(e) => setNewMessage({...newMessage, message: e.target.value})}
+                placeholder="Your notification message..."
+                required
+                className="min-h-[80px]"
+              />
+            </div>
+            <Button type="submit" className="admin-gradient w-full sm:w-auto">
+              <Send className="w-4 h-4 mr-2" />
+              Send Notification
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Filters and Search */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Search notifications..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              {['all', 'unread', 'read'].map((tab) => (
+                <Button
+                  key={tab}
+                  variant={activeTab === tab ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setActiveTab(tab)}
+                  className={activeTab === tab ? 'admin-gradient' : ''}
                 >
-                  Cancel
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Notifications List */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Notifications</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">
+            Recent Notifications ({filteredNotifications.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {notifications.map((notification) => (
-              <div 
-                key={notification.id} 
-                className={`p-4 border rounded-lg hover:bg-gray-50 transition-colors ${
-                  !notification.read ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3 flex-1">
-                    {getNotificationIcon(notification.type)}
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h4 className="font-semibold text-gray-900">{notification.title}</h4>
-                        {getNotificationBadge(notification.type)}
-                        {!notification.read && (
-                          <Badge variant="destructive" className="text-xs">New</Badge>
-                        )}
-                      </div>
-                      <p className="text-gray-600 mb-2">{notification.message}</p>
-                      <div className="text-sm text-gray-500">
-                        {notification.timestamp}
-                        {notification.customerName && (
-                          <span className="ml-2">• Customer: {notification.customerName}</span>
-                        )}
-                        {notification.bookingId && (
-                          <span className="ml-2">• Booking: {notification.bookingId}</span>
-                        )}
+          <div className="space-y-3">
+            {filteredNotifications.length === 0 ? (
+              <div className="text-center py-8">
+                <Bell className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600">No notifications found</p>
+              </div>
+            ) : (
+              filteredNotifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 border rounded-lg hover:bg-gray-50 transition-colors ${
+                    !notification.read ? 'border-red-200 bg-red-50' : 'border-gray-200'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex items-start space-x-3 flex-1 min-w-0">
+                      {getNotificationIcon(notification.type)}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                          <h4 className="font-semibold text-gray-900 truncate">{notification.title}</h4>
+                          {getTypeBadge(notification.type)}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500">
+                          <span>{notification.timestamp}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span>Customer: {notification.customerName}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span>Booking: {notification.bookingId}</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      {!notification.read && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => markAsRead(notification.id)}
+                          className="text-xs"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          Mark Read
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteNotification(notification.id)}
+                        className="text-red-600 hover:text-red-700 text-xs"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
-                  {!notification.read && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => markAsRead(notification.id)}
-                    >
-                      Mark as Read
-                    </Button>
-                  )}
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
